@@ -1,6 +1,55 @@
 const router = require('express').Router();
-const { User } = require('../../models');
+const { User, Post, Comment } = require('../../models');
 
+
+//find all users
+router.get('/', async (req, res) => {
+  try {
+    const userData = await User.findAll({
+      attributes: { exclude: ['[password'] },
+    });
+    res.json(userData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
+//find one user by id
+router.get('/:id', async (req, res) => {
+  try {
+    const userData = await User.findOne({
+      attributes: { exclude: ['password'] },
+      where: {
+        id: req.params.id,
+      },
+      include: [
+        {
+          model: Post,
+          attributes: ['id', 'title', 'post_body', 'created_at'],
+        },
+        {
+          model: Comment,
+          attributes: ['id', 'comment_body', 'created_at'],
+          include: {
+            model: Post,
+            attributes: ['title'],
+          },
+        },
+      ],
+    });
+    if (!userData) {
+      res.status(404).json({ message: 'No user found with this id!' });
+      return;
+    }
+    res.json(userData);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err);
+  }
+});
+
+//creating new user
 router.post('/', async (req, res) => {
   try {
     const newUser = await User.create({
@@ -20,6 +69,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+//logging in user
 router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({
@@ -52,6 +102,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+//logging out user
 router.post('/logout', (req, res) => {
   if (req.session.loggedIn) {
     req.session.destroy(() => {
