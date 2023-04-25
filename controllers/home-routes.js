@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { Post, Comment, User } = require('../models/');
 
 
-// get all posts for homepage, renders to all-posts.handlebars
+// get all posts for homepage and renders to all-posts.handlebars
 router.get('/', async (req, res) => {
   try {
     console.log(req.session);
@@ -52,7 +52,7 @@ router.get('/post/:id', async (req, res) => {
     });
 
     if (postData) {
-      // serialize 
+      // serialize the data
       const post = postData.get({ plain: true });
       res.render('single-post', { post, loggedIn: req.session.loggedIn });
     } else {
